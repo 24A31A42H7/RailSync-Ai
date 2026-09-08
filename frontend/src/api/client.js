@@ -3,7 +3,7 @@ import axios from "axios";
 // The backend URL is the only thing the frontend needs to know — the
 // Railway Data API key itself lives only in backend/.env and is never
 // sent to or read by this app.
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://railsync-ai-backend-1.onrender.com";
 
 const client = axios.create({ baseURL: BASE_URL });
 
