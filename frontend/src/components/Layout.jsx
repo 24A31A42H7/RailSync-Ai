@@ -40,7 +40,7 @@ export default function Layout({ children }) {
     <div className="min-h-screen flex bg-console-bg text-console-text font-sans">
       <aside className="w-64 shrink-0 border-r border-console-border bg-console-panel flex flex-col">
         <div className="px-5 py-5 border-b border-console-border">
-          <div className="text-xs tracking-widest text-signal-blue font-mono">SIH 2026 · SIH26027</div>
+          <div className="text-xs tracking-widest text-signal-blue font-mono"></div>
           <div className="text-lg font-semibold leading-tight mt-1">RailSync AI</div>
           <div className="text-[11px] text-console-muted mt-0.5">Automatic Block Planning</div>
         </div>
