@@ -43,14 +43,18 @@ jobs:
       with:
         context: ./backend
         push: true
-        tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest
+        tags: |
+          ${{ secrets.DOCKER_USERNAME }}/backend:${{github.sha}}
+          ${{ secrets.DOCKER_USERNAME }}/backend:latest
 
     - name: Build and push Frontend Docker image
       uses: docker/build-push-action@v5
       with:
         context: ./frontend
         push: true
-        tags: ${{ secrets.DOCKER_USERNAME }}/frontend:latest
+        tags: |
+          ${{ secrets.DOCKER_USERNAME }}/frontend:${{github.sha}}
+          ${{ secrets.DOCKER_USERNAME }}/frontend:latest
 
     - name: Trigger Backend Render Deploy Hook
       run: |
