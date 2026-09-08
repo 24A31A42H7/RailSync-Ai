@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: __DOCKER_USERNAME__/backend:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          value: "__DATABASE_URL__"
+        - name: RAILWAY_API_KEY
+          value: "__RAILWAY_API_KEY__"
+        - name: RAILWAY_API_BASE_URL
+          value: "__RAILWAY_API_BASE_URL__"
+        - name: RAILWAY_API_PROVIDER
+          value: "__RAILWAY_API_PROVIDER__"
+        - name: FRONTEND_URL
+          value: "__FRONTEND_URL__"
+        - name: JWT_SECRET_KEY
+          value: "__JWT_SECRET_KEY__"
+        - name: JWT_ALGORITHM
+          value: "__JWT_ALGORITHM__"
+        - name: JWT_EXPIRE_MINUTES
+          value: "__JWT_EXPIRE_MINUTES__"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: backend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+  type: ClusterIP

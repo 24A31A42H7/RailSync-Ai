@@ -1,0 +1,57 @@
+name: CI/CD with SonarQube and Render
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  sonar-analysis:
+    name: SonarQube Quality Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: SonarQube Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  build-and-deploy:
+    needs: sonar-analysis
+    name: Build Docker & Trigger Render
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push Backend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest
+
+    - name: Build and push Frontend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/frontend:latest
+
+    - name: Trigger Backend Render Deploy Hook
+      run: |
+        curl -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK_URL }}"
+
+    - name: Trigger Frontend Render Deploy Hook
+      run: |
+        curl -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}"
