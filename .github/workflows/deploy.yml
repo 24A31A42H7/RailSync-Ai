@@ -1,67 +1,142 @@
-name: CI/CD with SonarQube and Render
+name: CI/CD - SonarCloud, Docker Hub and Render
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 jobs:
-  sonar-analysis:
-    name: SonarQube Quality Check
+
+  # ==========================================================
+  # 1. SONARCLOUD QUALITY CHECK
+  # ==========================================================
+  sonar:
+    name: SonarCloud Analysis
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: SonarQube Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        args: >
-          -Dsonar.organization=24a31a42h7-1
-          -Dsonar.projectKey=24A31A42H7_RailSync-Ai
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=24a31a42h7-1
+            -Dsonar.projectKey=24A31A42H7_RailSync-Ai
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/node_modules/**,**/venv/**,**/.venv/**,**/__pycache__/**,**/dist/**,**/build/**
 
-  build-and-deploy:
-    needs: sonar-analysis
-    name: Build Docker & Trigger Render
+      - name: Check SonarCloud Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1.2.0
+        timeout-minutes: 10
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+
+  # ==========================================================
+  # 2. BUILD AND PUSH DOCKER IMAGES
+  # ==========================================================
+  docker:
+    name: Build and Push Docker Images
     runs-on: ubuntu-latest
+    needs: sonar
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push Backend Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./backend
-        push: true
-        no-cache: true
-        tags: |
-          ${{ secrets.DOCKER_USERNAME }}/backend:${{github.sha}}
-          ${{ secrets.DOCKER_USERNAME }}/backend:latest
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Build and push Frontend Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./frontend
-        push: true
-        no-cache: true
-        tags: |
-          ${{ secrets.DOCKER_USERNAME }}/frontend:${{github.sha}}
-          ${{ secrets.DOCKER_USERNAME }}/frontend:latest
+      # ------------------------------------------------------
+      # Backend
+      # ------------------------------------------------------
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          platforms: linux/amd64
+          no-cache: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/backend:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/backend:latest
 
-    - name: Trigger Backend Render Deploy Hook
-      run: |
-        curl -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK_URL }}"
+      # ------------------------------------------------------
+      # Frontend
+      # ------------------------------------------------------
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          platforms: linux/amd64
+          no-cache: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/frontend:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/frontend:latest
 
-    - name: Trigger Frontend Render Deploy Hook
-      run: |
-        curl -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}"
+
+  # ==========================================================
+  # 3. DEPLOY BACKEND TO RENDER
+  # ==========================================================
+  deploy-backend:
+    name: Deploy Backend to Render
+    runs-on: ubuntu-latest
+    needs: docker
+
+    steps:
+      - name: Trigger Backend Render Deploy
+        env:
+          RENDER_HOOK: ${{ secrets.RENDER_BACKEND_DEPLOY_HOOK_URL }}
+        run: |
+          set -e
+
+          echo "Triggering backend deployment..."
+
+          curl --fail --silent --show-error \
+            --request POST \
+            "$RENDER_HOOK"
+
+          echo "Backend Render deployment triggered successfully."
+
+
+  # ==========================================================
+  # 4. DEPLOY FRONTEND TO RENDER
+  # ==========================================================
+  deploy-frontend:
+    name: Deploy Frontend to Render
+    runs-on: ubuntu-latest
+    needs: docker
+
+    steps:
+      - name: Trigger Frontend Render Deploy
+        env:
+          RENDER_HOOK: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}
+        run: |
+          set -e
+
+          echo "Triggering frontend deployment..."
+
+          curl --fail --silent --show-error \
+            --request POST \
+            "$RENDER_HOOK"
+
+          echo "Frontend Render deployment triggered successfully."
