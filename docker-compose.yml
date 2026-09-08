@@ -1,36 +1,19 @@
 version: "3.9"
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: railway
-      POSTGRES_PASSWORD: railway
-      POSTGRES_DB: railway_maintenance
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U railway"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   backend:
     build: ./backend
     restart: unless-stopped
     env_file:
       - ./backend/.env
     environment:
-      # override sqlite default from .env so docker-compose always uses Postgres
       DATABASE_URL: postgresql+psycopg2://railway:railway@postgres:5432/railway_maintenance
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     ports:
       - "8000:8000"
+    networks:
+      - app-network
 
   frontend:
     build: ./frontend
@@ -41,6 +24,21 @@ services:
       - backend
     ports:
       - "5173:5173"
+    networks:
+      - app-network
 
-volumes:
-  pgdata:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: railway
+      POSTGRES_PASSWORD: railway
+      POSTGRES_DB: railway_maintenance
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
