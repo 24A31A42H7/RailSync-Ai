@@ -19,6 +19,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        args: >
+          -Dsonar.organization=24A31A42H7
+          -Dsonar.projectKey=24A31A42H7_RailSync-Ai
 
   build-and-deploy:
     needs: sonar-analysis
