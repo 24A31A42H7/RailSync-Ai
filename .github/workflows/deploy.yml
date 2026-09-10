@@ -120,7 +120,7 @@ jobs:
       # ========================================================
 
       - name: Build and Push Backend Image
-        uses: docker/build-push-action@10e90e3c7b5c6f8e3f5c6e4d4a0e7f8f9b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6 # v6.19.2
+        uses: docker/build-push-action@v6  # v6.19.2
         with:
           context: ./backend
           file: ./backend/Dockerfile
@@ -135,7 +135,7 @@ jobs:
       # ========================================================
 
       - name: Build and Push Frontend Image
-        uses: docker/build-push-action@10e90e3c7b5c6f8e3f5c6e4d4a0e7f8f9b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6 # v6.19.2
+        uses: docker/build-push-action@v6 # v6.19.2
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
