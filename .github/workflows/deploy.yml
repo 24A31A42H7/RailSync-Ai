@@ -34,7 +34,9 @@ jobs:
             -Dsonar.organization=24a31a42h7-1
             -Dsonar.projectKey=24A31A42H7_RailSync-Ai
             -Dsonar.sources=backend,frontend
-            -Dsonar.exclusions=**/node_modules/**,**/venv/**,**/.venv/**,**/__pycache__/**,**/dist/**,**/build/**,k8s/**,.github/**,docker-compose.yml
+            -Dsonar.tests=frontend
+            -Dsonar.test.inclusions=frontend/**/*.test.js,frontend/**/*.test.jsx
+            -Dsonar.exclusions=**/node_modules/**,**/venv/**,**/.venv/**,**/__pycache__/**,**/dist/**,**/build/**,**/coverage/**,k8s/**,.github/**,docker-compose.yml
             -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
 
       - name: Check SonarCloud Quality Gate
