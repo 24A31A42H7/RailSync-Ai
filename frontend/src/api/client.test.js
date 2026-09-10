@@ -1,52 +1,118 @@
-it("passes successful responses through the response interceptor", async () => {
-  vi.stubEnv("VITE_API_BASE_URL", "http://localhost:8000");
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-  const { default: client } = await import("./client.js");
+describe("API client", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.resetModules();
+  });
 
-  const response = { status: 200, data: { ok: true } };
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
 
-  const result =
-    await client.interceptors.response.handlers[0].fulfilled(response);
+  it("uses the configured API base URL", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "http://localhost:8000");
 
-  expect(result).toEqual(response);
-});
+    const { default: client } = await import("./client.js");
 
-it("handles 401 responses by clearing authentication data", async () => {
-  vi.stubEnv("VITE_API_BASE_URL", "http://localhost:8000");
+    expect(client.defaults.baseURL).toBe("http://localhost:8000");
+  });
 
-  localStorage.setItem("rsai_token", "test-token");
-  localStorage.setItem("rsai_manager", "test-manager");
+  it("uses the default backend URL when VITE_API_BASE_URL is missing", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "");
 
-  const { default: client } = await import("./client.js");
+    const { default: client } = await import("./client.js");
 
-  const error = {
-    response: {
-      status: 401
-    }
-  };
+    expect(client.defaults.baseURL).toBe(
+      "https://railsync-ai-backend-1.onrender.com"
+    );
+  });
 
-  const rejected =
-    client.interceptors.response.handlers[0].rejected(error);
+  it("adds Authorization header when token exists", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "http://localhost:8000");
 
-  await expect(rejected).rejects.toEqual(error);
+    localStorage.setItem("rsai_token", "test-token");
 
-  expect(localStorage.getItem("rsai_token")).toBeNull();
-  expect(localStorage.getItem("rsai_manager")).toBeNull();
-});
+    const { default: client } = await import("./client.js");
 
-it("passes non-401 errors through the response interceptor", async () => {
-  vi.stubEnv("VITE_API_BASE_URL", "http://localhost:8000");
+    const config = {
+      headers: {}
+    };
 
-  const { default: client } = await import("./client.js");
+    const result =
+      await client.interceptors.request.handlers[0].fulfilled(config);
 
-  const error = {
-    response: {
-      status: 500
-    }
-  };
+    expect(result.headers.Authorization).toBe("Bearer test-token");
+  });
 
-  const rejected =
-    client.interceptors.response.handlers[0].rejected(error);
+  it("does not add Authorization header when token does not exist", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "http://localhost:8000");
 
-  await expect(rejected).rejects.toEqual(error);
+    const { default: client } = await import("./client.js");
+
+    const config = {
+      headers: {}
+    };
+
+    const result =
+      await client.interceptors.request.handlers[0].fulfilled(config);
+
+    expect(result.headers.Authorization).toBeUndefined();
+  });
+
+  it("passes successful responses through the response interceptor", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "http://localhost:8000");
+
+    const { default: client } = await import("./client.js");
+
+    const response = {
+      status: 200,
+      data: { ok: true }
+    };
+
+    const result =
+      await client.interceptors.response.handlers[0].fulfilled(response);
+
+    expect(result).toEqual(response);
+  });
+
+  it("handles 401 responses by clearing authentication data", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "http://localhost:8000");
+
+    localStorage.setItem("rsai_token", "test-token");
+    localStorage.setItem("rsai_manager", "test-manager");
+
+    const { default: client } = await import("./client.js");
+
+    const error = {
+      response: {
+        status: 401
+      }
+    };
+
+    const rejected =
+      client.interceptors.response.handlers[0].rejected(error);
+
+    await expect(rejected).rejects.toEqual(error);
+
+    expect(localStorage.getItem("rsai_token")).toBeNull();
+    expect(localStorage.getItem("rsai_manager")).toBeNull();
+  });
+
+  it("passes non-401 errors through the response interceptor", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "http://localhost:8000");
+
+    const { default: client } = await import("./client.js");
+
+    const error = {
+      response: {
+        status: 500
+      }
+    };
+
+    const rejected =
+      client.interceptors.response.handlers[0].rejected(error);
+
+    await expect(rejected).rejects.toEqual(error);
+  });
 });
