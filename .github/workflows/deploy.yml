@@ -128,8 +128,8 @@ jobs:
           no-cache: true
           platforms: linux/amd64
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/backend:v${{ github.run_number }}
-            ${{ secrets.DOCKER_USERNAME }}/backend:latest
+            ${{ secrets.DOCKER_USERNAME }}/railsync-ai-backend:v${{ github.run_number }}
+            ${{ secrets.DOCKER_USERNAME }}/railsync-ai-backend:latest
 
       # ========================================================
       # FRONTEND
@@ -144,9 +144,9 @@ jobs:
           no-cache: true
           platforms: linux/amd64
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/frontend:v${{ github.run_number }}
-            ${{ secrets.DOCKER_USERNAME }}/frontend:latest
-
+            ${{ secrets.DOCKER_USERNAME }}/railsync-ai-frontend:v${{ github.run_number }}
+            ${{ secrets.DOCKER_USERNAME }}/railsync-ai-frontend:latest
+           
 
   # ==========================================================
   # 3. DEPLOY BACKEND TO RENDER
