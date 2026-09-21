@@ -68,7 +68,7 @@ export default function Layout({ children }) {
           ))}
         </nav>
         <div className="px-5 py-4 border-t border-console-border text-xs text-console-muted">
-          Decision-support prototype — every recommendation requires manager approval.
+          AI-Powered Planning. Human-Approved Decisions.
         </div>
       </aside>
 
