@@ -45,7 +45,7 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center bg-console-bg font-sans text-console-text">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="text-xs tracking-widest text-signal-blue font-mono mb-2">SIH 2026 · SIH26027</div>
+          <div className="text-xs tracking-widest text-signal-blue font-mono mb-2"></div>
           <h1 className="text-2xl font-semibold">RailSync AI</h1>
           <p className="text-console-muted text-sm mt-2">Register as a Section Manager</p>
         </div>
