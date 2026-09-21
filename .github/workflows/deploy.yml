@@ -128,6 +128,7 @@ jobs:
           no-cache: true
           platforms: linux/amd64
           tags: |
+            ${{ secrets.DOCKER_USERNAME }}/backend:v${{ github.run_number }}
             ${{ secrets.DOCKER_USERNAME }}/backend:latest
 
       # ========================================================
@@ -143,6 +144,7 @@ jobs:
           no-cache: true
           platforms: linux/amd64
           tags: |
+            ${{ secrets.DOCKER_USERNAME }}/frontend:v${{ github.run_number }}
             ${{ secrets.DOCKER_USERNAME }}/frontend:latest
 
 
