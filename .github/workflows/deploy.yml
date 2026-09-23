@@ -39,6 +39,8 @@ jobs:
       # --------------------------------------------------------
       - name: Run frontend tests with coverage
         working-directory: frontend
+        env:
+        VITE_RAILRADAR_API_KEY: test-api-key
         run: npm run test:coverage
 
       # --------------------------------------------------------
