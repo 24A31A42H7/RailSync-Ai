@@ -395,12 +395,13 @@ function prepareTrainData(
         "-";
 
 
-    const destinationCode =
-        train.destinationCode ??
-        raw.destination.code ??
-        raw.destinationCode ??
-        raw.destination_code ??
-        "-";
+   const destinationCode =
+    train.destination?.code ??
+    train.destinationCode ??
+    raw.destination?.code ??
+    raw.destinationCode ??
+    raw.destination_code ??
+    "-";
 
 
 
