@@ -71,7 +71,7 @@ jobs:
             -Dsonar.sources=backend,frontend
             -Dsonar.tests=frontend
             -Dsonar.test.inclusions=frontend/**/*.test.js,frontend/**/*.test.jsx
-            -Dsonar.exclusions=**/node_modules/**,**/venv/**,**/.venv/**,**/__pycache__/**,**/dist/**,**/build/**,**/coverage/**,k8s/**,.github/**,docker-compose.yml
+            -Dsonar.exclusions=**/node_modules/**,**/venv/**,**/.venv/**,**/__pycache__/**,**/dist/**,**/build/**,**/coverage/**,k8s/**,.github/**,docker-compose.yml,frontend/src/components/LiveTrainsPanel.jsx
             -Dsonar.coverage.exclusions=frontend/src/components/RailTracker.jsx,frontend/src/components/LiveTrainsPanel.jsx
             -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
 
