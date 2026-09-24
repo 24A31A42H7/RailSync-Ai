@@ -150,7 +150,7 @@ DATABASE_URL=postgresql+psycopg2://railway:railway@localhost:5432/railway_mainte
 ```bash
 cd frontend
 npm install
-cp .env.example .env       # VITE_API_BASE_URL=http://localhost:8000
+cp .env.example .env       # VITE_API_BASE_URL=http://localhost:8000 , VITE_RAILRADAR_API_KEY= "railway api key";
 npm run dev
 ```
 
