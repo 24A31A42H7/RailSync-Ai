@@ -24,6 +24,7 @@ const API_BASE_URL = "https://api.railradar.in";
 
 const API_KEY = import.meta.env.VITE_RAILRADAR_API_KEY;
 
+
 /*
  * ============================================================
  * HELPERS
@@ -170,14 +171,6 @@ function getDeparture(station) {
  * ============================================================
  * GET LIVE TRAIN FROM RAILRADAR
  * ============================================================
- *
- * This follows the same API flow as your working HTML:
- *
- * /v1/trains/{trainNumber}/live
- *
- * and:
- *
- * result.data || result
  */
 async function getLiveTrain(trainNumber) {
 
@@ -261,10 +254,16 @@ async function getLiveTrain(trainNumber) {
         result
     );
 
-    console.log("train data from railway api ", result.data);
+    console.log(
+        "train data from railway api ",
+        result?.data
+    );
+
+
     /*
-     * This is exactly the pattern from
-     * your working HTML.
+     * This follows the working HTML/API pattern:
+     *
+     * result.data || result
      */
     const train =
         result?.data ?? result;
@@ -277,7 +276,11 @@ async function getLiveTrain(trainNumber) {
         );
     }
 
-    console.log("tain data", train);
+    console.log(
+        "train data",
+        train
+    );
+
     return train;
 }
 
@@ -286,13 +289,6 @@ async function getLiveTrain(trainNumber) {
  * ============================================================
  * NORMALIZE ONLY FIELD NAMES
  * ============================================================
- *
- * IMPORTANT:
- *
- * This function does NOT create fake data.
- *
- * If RailRadar does not provide something,
- * we keep it null / empty.
  */
 function prepareTrainData(
     raw,
@@ -332,16 +328,12 @@ function prepareTrainData(
 
 
     /*
-     * IMPORTANT:
-     *
      * Use the API route exactly as received.
      *
-     * No fallback route.
      * No fake stations.
      * No slice().
      * No filter().
      */
-    console.log("prepare train data lo train infromation,", raw.train);
     const route =
         Array.isArray(raw.route)
             ? raw.route
@@ -377,16 +369,25 @@ function prepareTrainData(
         "-";
 
 
+    /*
+     * IMPORTANT:
+     *
+     * Use optional chaining here.
+     *
+     * The previous:
+     *
+     * raw.train.source.code
+     *
+     * could crash when raw.train/source did not exist.
+     */
     const sourceCode =
         train.source?.code ??
-        raw.train.source.code ??
+        raw.source?.code ??
         raw.sourceCode ??
         raw.source_code ??
         raw.originCode ??
         raw.origin_code ??
         "-";
-
-
 
 
     const destination =
@@ -395,16 +396,13 @@ function prepareTrainData(
         "-";
 
 
-   const destinationCode =
-    train.destination?.code ??
-    train.destinationCode ??
-    raw.destination?.code ??
-    raw.destinationCode ??
-    raw.destination_code ??
-    "-";
-
-
-
+    const destinationCode =
+        train.destination?.code ??
+        train.destinationCode ??
+        raw.destination?.code ??
+        raw.destinationCode ??
+        raw.destination_code ??
+        "-";
 
 
     const speed =
@@ -570,7 +568,7 @@ function prepareTrainData(
  * ============================================================
  */
 
-export default function RailTracker({
+function RailTracker({
     trainNumber,
     searchFrom,
     searchTo,
@@ -627,9 +625,11 @@ export default function RailTracker({
     useEffect(() => {
 
         if (!trainNumber) {
+
             setTrainData(null);
             setError("");
             setLoading(false);
+
             return;
         }
 
@@ -717,7 +717,7 @@ export default function RailTracker({
 
 
         /*
-         * Refresh every 60 seconds.
+         * Refresh every 120 seconds.
          */
         const interval =
             setInterval(
@@ -825,9 +825,8 @@ export default function RailTracker({
 
 
         /*
-         * Use circleMarker instead of the default
-         * Leaflet marker icon, so Vite doesn't have
-         * marker image-path problems.
+         * Remove old marker before creating
+         * the new one.
          */
         if (markerRef.current) {
 
@@ -850,17 +849,13 @@ export default function RailTracker({
 
         marker.bindPopup(
             `
-        <strong>🚆 ${trainData.trainName
-            }</strong>
+        <strong>🚆 ${trainData.trainName}</strong>
         <br/>
-        Train No: ${trainData.trainNumber
-            }
+        Train No: ${trainData.trainNumber}
         <br/>
-        Position: ${current.stationCode || "-"
-            }
+        Position: ${current.stationCode || "-"}
         <br/>
-        Speed: ${current.speedKmh ?? 0
-            } km/h
+        Speed: ${current.speedKmh ?? 0} km/h
       `
         );
 
@@ -973,6 +968,7 @@ export default function RailTracker({
 
                     <div>
                         API:
+                        {" "}
                         https://api.railradar.in/v1/trains/
                         {cleanTrainNumber(trainNumber)}
                         /live
@@ -1051,6 +1047,7 @@ export default function RailTracker({
             {/* ======================================================
           HEADER
           ====================================================== */}
+
             <section className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
 
                 <div className="flex justify-between items-start mb-4">
@@ -1130,6 +1127,7 @@ export default function RailTracker({
             {/* ======================================================
           LIVE STATS
           ====================================================== */}
+
             <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
 
                 <div className="bg-white rounded-lg border border-slate-200 p-3">
@@ -1140,9 +1138,11 @@ export default function RailTracker({
 
                     <div className="text-lg font-bold">
                         {trainData.speedKmh ?? 0}
+
                         <span className="text-xs ml-1">
                             km/h
                         </span>
+
                     </div>
 
                 </div>
@@ -1156,9 +1156,11 @@ export default function RailTracker({
 
                     <div className="text-lg font-bold">
                         {trainData.delayMinutes ?? 0}
+
                         <span className="text-xs ml-1">
                             min
                         </span>
+
                     </div>
 
                 </div>
@@ -1202,6 +1204,7 @@ export default function RailTracker({
             {/* ======================================================
           CURRENT LOCATION
           ====================================================== */}
+
             <section className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
 
                 <div className="text-xs font-bold text-teal-700 uppercase tracking-wide mb-2">
@@ -1267,6 +1270,7 @@ export default function RailTracker({
             {/* ======================================================
           ROUTE
           ====================================================== */}
+
             <section className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
 
                 <div className="flex justify-between items-center mb-1">
@@ -1345,13 +1349,6 @@ export default function RailTracker({
                                     index > currentIndex;
 
 
-                                /*
-                                 * All stations between this major
-                                 * station and next major station.
-                                 *
-                                 * We only collapse them visually.
-                                 * The actual route is NOT removed.
-                                 */
                                 const isHalt =
                                     station.isHalt === true;
 
@@ -1386,6 +1383,7 @@ export default function RailTracker({
                                         {/* =================================================
                         STATION
                         ================================================= */}
+
                                         <div
                                             className={`grid grid-cols-[90px_42px_1fr] min-h-[90px] relative ${isCurrent
                                                 ? "bg-sky-50 rounded-lg"
@@ -1394,6 +1392,7 @@ export default function RailTracker({
                                         >
 
                                             {/* TIME */}
+
                                             <div className="text-right pr-3 pt-2 text-xs">
 
                                                 <div
@@ -1403,9 +1402,11 @@ export default function RailTracker({
                                                             : "text-slate-700"
                                                     }
                                                 >
+
                                                     {formatTime(
                                                         arrival
                                                     )}
+
                                                 </div>
 
 
@@ -1416,27 +1417,34 @@ export default function RailTracker({
                                                     formatTime(
                                                         arrival
                                                     ) && (
+
                                                         <div className="text-slate-400 mt-2">
+
                                                             {formatTime(
                                                                 departure
                                                             )}
+
                                                         </div>
+
                                                     )}
 
                                             </div>
 
 
                                             {/* LINE + DOT */}
+
                                             <div className="flex justify-center relative">
 
                                                 {index <
                                                     route.length - 1 && (
+
                                                         <div
                                                             className={`absolute top-0 bottom-0 w-1 ${isPassed
                                                                 ? "bg-emerald-300"
                                                                 : "bg-sky-200"
                                                                 }`}
                                                         />
+
                                                     )}
 
 
@@ -1462,6 +1470,7 @@ export default function RailTracker({
 
 
                                             {/* STATION INFO */}
+
                                             <div className="pl-2 pb-5 pt-1">
 
                                                 <div className="flex items-center gap-2">
@@ -1472,60 +1481,89 @@ export default function RailTracker({
                                                             : "text-slate-800"
                                                             }`}
                                                     >
+
                                                         {name}
+
                                                     </div>
 
+
                                                     {isCurrent && (
+
                                                         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-500 text-white">
+
                                                             CURRENT
+
                                                         </span>
+
                                                     )}
 
                                                 </div>
 
 
                                                 <div className="text-xs text-slate-500 font-mono">
+
                                                     {code || "-"}
+
                                                 </div>
 
 
                                                 <div className="mt-1 flex flex-wrap gap-1">
 
                                                     {station.distance != null && (
+
                                                         <span className="text-xs text-slate-600">
+
                                                             {station.distance} km
+
                                                         </span>
+
                                                     )}
 
 
                                                     {station.platform && (
+
                                                         <span className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-[11px] font-semibold">
+
                                                             Platform{" "}
                                                             {station.platform}
+
                                                         </span>
+
                                                     )}
 
 
                                                     {isPassed && (
+
                                                         <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[10px] font-semibold">
+
                                                             PASSED
+
                                                         </span>
+
                                                     )}
 
 
                                                     {isUpcoming && (
+
                                                         <span className="px-1.5 py-0.5 bg-slate-50 text-slate-500 border border-slate-200 rounded text-[10px] font-semibold">
+
                                                             UPCOMING
+
                                                         </span>
+
                                                     )}
 
                                                 </div>
 
 
                                                 {isCurrent && (
+
                                                     <div className="text-sky-600 text-xs font-bold mt-1">
+
                                                         🚆 TRAIN IS HERE
+
                                                     </div>
+
                                                 )}
 
                                             </div>
@@ -1536,7 +1574,9 @@ export default function RailTracker({
                                         {/* =================================================
                         BETWEEN STATIONS
                         ================================================= */}
+
                                         {intermediate.length > 0 && (
+
                                             <div className="grid grid-cols-[90px_42px_1fr] relative">
 
                                                 <div />
@@ -1554,9 +1594,11 @@ export default function RailTracker({
                                                         }
                                                         className="w-7 h-7 rounded-full bg-sky-600 hover:bg-sky-700 text-white text-sm flex items-center justify-center border-2 border-white shadow z-20"
                                                     >
+
                                                         {expanded
                                                             ? "−"
                                                             : "+"}
+
                                                     </button>
 
                                                 </div>
@@ -1577,8 +1619,11 @@ export default function RailTracker({
                                                         {expanded
                                                             ? "Hide"
                                                             : "Show"}{" "}
+
                                                         {intermediate.length}{" "}
+
                                                         intermediate{" "}
+
                                                         {intermediate.length ===
                                                             1
                                                             ? "station"
@@ -1605,6 +1650,7 @@ export default function RailTracker({
                                         {/* =================================================
                         INTERMEDIATE STATIONS
                         ================================================= */}
+
                                         {intermediate.length > 0 &&
                                             expanded && (
 
@@ -1652,11 +1698,15 @@ export default function RailTracker({
                                                                             <div>
 
                                                                                 <div className="font-semibold text-slate-800">
+
                                                                                     {intermediateName}
+
                                                                                 </div>
 
                                                                                 <div className="text-[11px] text-slate-500 font-mono">
+
                                                                                     {intermediateCode}
+
                                                                                 </div>
 
                                                                             </div>
@@ -1696,6 +1746,7 @@ export default function RailTracker({
             {/* ======================================================
           MAP
           ====================================================== */}
+
             <section className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
 
                 <div className="flex items-center justify-between mb-3">
@@ -1704,11 +1755,16 @@ export default function RailTracker({
                         🗺️ Train Location
                     </div>
 
+
                     {current.latitude != null &&
                         current.longitude != null && (
+
                             <span className="text-[10px] text-emerald-600 font-semibold">
+
                                 GPS AVAILABLE
+
                             </span>
+
                         )}
 
                 </div>
@@ -1739,7 +1795,9 @@ export default function RailTracker({
             {/* ======================================================
           SEARCH CONTEXT
           ====================================================== */}
+
             {(searchFrom || searchTo) && (
+
                 <div className="text-[10px] text-slate-400 text-center">
 
                     Search:
@@ -1749,8 +1807,36 @@ export default function RailTracker({
                     {searchTo || "-"}
 
                 </div>
+
             )}
 
         </div>
     );
 }
+
+
+/*
+ * ============================================================
+ * EXPORTS
+ * ============================================================
+ *
+ * Default export:
+ * Used by the actual application.
+ *
+ * Named exports:
+ * Used by RailTracker.test.jsx to directly test helper
+ * functions and improve SonarCloud branch coverage.
+ */
+
+export default RailTracker;
+
+export {
+    cleanTrainNumber,
+    safeString,
+    formatTime,
+    getStationCode,
+    getStationName,
+    getArrival,
+    getDeparture,
+    prepareTrainData,
+};
