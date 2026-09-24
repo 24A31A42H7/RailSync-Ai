@@ -1743,54 +1743,7 @@ function RailTracker({
             </section>
 
 
-            {/* ======================================================
-          MAP
-          ====================================================== */}
-
-            <section className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-
-                <div className="flex items-center justify-between mb-3">
-
-                    <div className="text-base font-bold text-slate-900">
-                        🗺️ Train Location
-                    </div>
-
-
-                    {current.latitude != null &&
-                        current.longitude != null && (
-
-                            <span className="text-[10px] text-emerald-600 font-semibold">
-
-                                GPS AVAILABLE
-
-                            </span>
-
-                        )}
-
-                </div>
-
-
-                {current.latitude == null ||
-                    current.longitude == null ? (
-
-                    <div className="h-[300px] rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-sm text-slate-500">
-
-                        📍 Live coordinates are not available
-                        for this train.
-
-                    </div>
-
-                ) : (
-
-                    <div
-                        ref={mapRef}
-                        className="w-full h-[300px] rounded-lg border border-slate-200 overflow-hidden"
-                    />
-
-                )}
-
-            </section>
-
+        
 
             {/* ======================================================
           SEARCH CONTEXT
